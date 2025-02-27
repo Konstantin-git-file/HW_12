@@ -1,0 +1,98 @@
+package edu.mfti;
+
+public class Main {
+    public static void main(String[] args) throws ClassNotFoundException {
+        Trafficlight tl = new Trafficlight();
+        tl.cur= new RedState();
+        tl.next();
+        tl.next();
+        tl.next();
+        tl.off();
+        tl.next();
+        tl.next();
+        tl.next();
+        tl.next();
+        tl.on();
+        tl.next();
+        tl.next();
+        tl.next();
+    }
+}
+interface State{
+    void make();
+    void next(Trafficlight trafficlight);
+}
+
+class Trafficlight {
+    State cur;
+    private State tmp;
+    public void off() {
+        tmp=cur;
+        cur=new OffState();
+    }
+
+    public void on() {
+        cur=tmp;
+    }
+
+    public void next() {
+        cur.make();
+        cur.next(this);
+    }
+}
+class OffState implements State{
+    @Override
+    public void make() {
+        System.out.println("black");
+    }
+
+    @Override
+    public void next(Trafficlight trafficlight) {
+        trafficlight.cur=this;
+    }
+}
+
+class RedState implements State{
+
+    @Override
+    public void make() {
+        System.out.println("red");
+    }
+
+    @Override
+    public void next(Trafficlight trafficlight) {
+        trafficlight.cur=new GreenState();
+    }
+}
+
+class GreenState implements State{
+
+    @Override
+    public void make() {
+        System.out.println("green");
+    }
+
+    @Override
+    public void next(Trafficlight trafficlight) {
+        trafficlight.cur=new RedState();
+    }
+}
+
+//1. а Зачем нам много объектов?
+
+в текущем коде каждый вызов next() создает
+новый объект состояния (new RedState() или new GreenState()), но много не нужно, т.к. объеты
+неизменяемы, используем синглетон
+
+
+//2. а нужно ли много классов?
+не обязательно, можно объединить в одном месте или enum, т.к логика одна
+
+
+//3. реализуем ли двухэтпаный процесс?
+наверное добавить промежуточное состояние, типа YellowAfterGreenState или YellowAfterRedState
+
+//4. как сделать состояния ответсвенными за включения-выключения?
+сейчас on() и off() в Trafficlight и юзаются состоянием "извне", но тогда это не State, где
+состояния сами должны определять поведение системы?
+Выносим в State
